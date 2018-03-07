@@ -1,0 +1,150 @@
+---
+title: "Lillie Pennington HW4 not regexp"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+
+
+library(tidyverse)
+require(readr)
+
+```
+
+```{r}
+setwd("air quality")
+
+o3.filenames <- list.files(pattern = ".txt")
+o3.filelist <- lapply(o3.filenames, read_delim, delim = "|")
+
+```
+
+```{r}
+names(o3.filelist) <- gsub(".txt","", o3.filenames)
+
+o3.filelist
+```
+
+##2. What class is o3.filelist? What does it contain?
+It's a list. It contains a list of tibbles from the text files.
+
+##3. Using ~ 1 sentence per line in the above code, explain what each line in the code is doing.
+#setwd("air quality")
+sets my working directory to where the data is
+
+#o3.filenames <- list.files(pattern = ".txt")
+stores the character vector of the names of the .txt files
+
+#o3.filelist <- lapply(o3.filenames, read_delim, delim = "|")
+lapply applies the read_delim function to the list of files in o3.filenames
+
+#names(o3.filelist) <- gsub(".txt","", o3.filenames)
+the names of the o3.filelist objects have .txt removed from the end
+
+##4. Rewrite the code above using the stringr package insead of grep{base}.
+names(o3.filelist) <- str_replace(o3.filenames, ".txt", "")
+
+```{r}
+library(data.table)
+library(tidyverse)
+daily <- o3.filelist %>%
+  rbindlist() %>%
+  group_by(site = as.factor(site), date) %>%
+  summarize(o3 = mean(obs, na.rm = TRUE))
+daily
+```
+
+##5. Rewrite the code above using traditional object-based R programming instead of the piping operator.
+```{r}
+library(data.table)
+library(tidyverse)
+ 
+bfiles <- rbindlist(o3.filelist)
+gfiles <-group_by(bfiles, site = as.factor(site), date) 
+daily<- summarize(gfiles, o3 = mean(obs, na.rm = TRUE))
+daily
+```
+
+
+##6. Summarize the o3 data above by site and by month and by year using a piping operator (the monthly mean o3 for each site for each year).
+```{r}
+daily <- o3.filelist %>%
+  rbindlist() %>%
+  mutate(yr = lubridate::year(date)) %>%
+  mutate(mo = lubridate::month(date)) %>%
+  group_by(site = as.factor(site), yr, mo) %>%
+  summarize(o3 = mean(obs, na.rm = TRUE))
+daily
+```
+
+##7. Challenge! Ozone pollution actually follows a very strong diurnal pattern. How would you summarize the daily data from above in a better way to capture that diurnal pattern?
+```{r}
+hourly <- o3.filelist %>%
+  rbindlist() %>%
+  group_by(site = as.factor(site), start_hour) %>%
+  summarize(o3 = mean(obs, na.rm = TRUE))
+hourly
+```
+##8. How many site names in the CA air quality location dataset “Site Name” contain “San” or “Santa?”.
+```{r}
+library(readxl)
+location <- read_excel("air quality/location.xls")
+
+sum(str_detect(location$`Site Name`, "Santa")) #36
+sum(str_detect(location$`Site Name`, "San")) #98
+
+98-36
+
+#San = 62, Santa = 36
+
+```
+
+##9. Identify the number of sites that do not have a complete address (full street address and zip code).
+```{r}
+
+fulladd <- filter(location, str_detect(location$Address, "^(\\d|PO)")== FALSE
+                  & str_detect(location$`Zip Code`, "\\d{5}") == FALSE)
+
+dim(fulladd)
+#8 sites do not have a full address 
+```
+
+##10. How does a semi join differ from an inner join?
+Inner join keeps columns from x and y, semi join just keeps columns from x
+
+##11. Write a function to calculate the annual mean, median, max and min of all sites that have “San” or “Santa” in their name.
+```{r}
+
+mmmm <- function(h) {
+  mean(h, na.rm = TRUE)
+  median(h, na.rm = TRUE)
+  max(h, na.rm = TRUE)
+  min(h, na.rm = TRUE)
+}
+
+#for str_detect(location$`Site Name`, "San") {mmmm}
+
+
+#idk erin.. 
+
+
+```
+
+##12. Write a function to caculate the annual daily mean. Apply that function to Merced County. What is the annual daily mean of o3 for Merced County?
+```{r}
+yearly <- o3.filelist %>%
+  rbindlist() %>%
+  mutate(yr = lubridate::year(date)) %>%
+  group_by(site = as.factor(site), yr) %>%
+  summarize(o3 = mean(obs, na.rm = TRUE))
+yearly
+
+mean(yearly$o3)
+
+#0.02942594; i guess i didn't need to group by year
+
+```
+
+
