@@ -14,6 +14,7 @@ require(readr)
 ```
 
 ```{r}
+setwd("air quality")
 
 o3.filenames <- list.files(pattern = ".txt")
 o3.filelist <- lapply(o3.filenames, read_delim, delim = "|")
@@ -89,30 +90,25 @@ hourly
 ##8. How many site names in the CA air quality location dataset “Site Name” contain “San” or “Santa?”.
 ```{r}
 library(readxl)
-location <- read_excel("location.xls")
-
-sitename <- select(location, "Site Name")
-sitename
+location <- read_excel("air quality/location.xls")
 
 sum(str_detect(location$`Site Name`, "Santa")) #36
 sum(str_detect(location$`Site Name`, "San")) #98
 
 98-36
 
-San = 62, Santa = 36
+#San = 62, Santa = 36
 
 ```
 
 ##9. Identify the number of sites that do not have a complete address (full street address and zip code).
 ```{r}
-fulladd <- rbind(location$Address, location$`Zip Code`)
-#here's my idea: i bound the address to the zipcode, now i'm trying to detct addresses that start with a number and end with 5...
 
-nonum <- str_detect(fulladd, "^[0-9].*[0-9][0-9][0-9][0-9][0-9]$")
+fulladd <- filter(location, str_detect(location$Address, "^(\\d|PO)")== FALSE
+                  & str_detect(location$`Zip Code`, "\\d{5}") == FALSE)
 
-length(nonum[nonum==FALSE])
-
-#1839? seems high...
+dim(fulladd)
+#8 sites do not have a full address 
 ```
 
 ##10. How does a semi join differ from an inner join?
