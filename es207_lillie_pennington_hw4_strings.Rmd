@@ -383,4 +383,5 @@ str_extract_all(sentences, boundary("word")) %>%
 
 
 ##i'll be honest, strings gave me a massive headache so i used online resources for help but i basically get it: https://github.com/jrnold/r4ds-exercise-solutions/blob/master/strings.Rmd
+##as in, on the ones where i thought I might tear my hair out and start weeping, i checked my answers against this, and changed them accordingly..
 
